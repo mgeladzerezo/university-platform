@@ -1,0 +1,92 @@
+# Image tags are set by CI to the commit SHA; ECR repositories are immutable.
+image:
+  registry: 111111111111.dkr.ecr.eu-central-1.amazonaws.com/kalinowo-uni
+  tag: ""
+  pullPolicy: IfNotPresent
+
+host: www.ukal.example
+
+serviceAccount:
+  # Bound to the application IAM role through EKS Pod Identity (see deploy/terraform/access.tf).
+  name: university-api
+
+# Non-secret configuration shared by api, worker, beat and the migration job.
+config:
+  UNI_ENVIRONMENT: production
+  UNI_PUBLIC_SITE_URL: https://www.ukal.example
+  UNI_CORS_ORIGINS: '["https://www.ukal.example"]'
+  UNI_OIDC_ISSUER: https://sso.ukal.example/realms/kalinowo
+  UNI_OIDC_AUDIENCE: uni-api
+  UNI_S3_BUCKET: kalinowo-uni-production-documents-111111111111
+  UNI_S3_REGION: eu-central-1
+  UNI_EMAIL_BACKEND: ses
+  UNI_EMAIL_FROM: no-reply@ukal.example
+  UNI_CLAMAV_HOST: clamav.security.svc.cluster.local
+  UNI_REJECTED_RETENTION_DAYS: "365"
+  UNI_EMBEDDER: e5
+  UNI_VECTOR_STORE: pgvector
+  UNI_ASSISTANT_MIN_SCORE: "0.80"
+  UNI_ANTHROPIC_MODEL: claude-opus-5-5
+
+# Secrets come from AWS Secrets Manager through External Secrets Operator.
+externalSecret:
+  enabled: true
+  refreshInterval: 1h
+  secretStore:
+    kind: ClusterSecretStore
+    name: aws-secrets-manager
+  # RDS-managed secret with "username" and "password" keys.
+  databaseSecretName: rds!db-00000000-0000-0000-0000-000000000000
+  appSecretName: kalinowo-uni-production/app
+  databaseHost: kalinowo-uni-production.abcdefghijkl.eu-central-1.rds.amazonaws.com
+  databaseName: uni
+  # ElastiCache has in-transit encryption on, hence rediss:// and the cert option Celery requires.
+  redisUrl: rediss://master.kalinowo-uni-production.abcdef.euc1.cache.amazonaws.com:6379/0?ssl_cert_reqs=required
+
+web:
+  replicas: 2
+  resources:
+    requests: { cpu: 100m, memory: 192Mi }
+    limits: { memory: 384Mi }
+  autoscaling: { minReplicas: 2, maxReplicas: 6, targetCPUUtilizationPercentage: 70 }
+
+api:
+  replicas: 3
+  # Memory is dominated by the e5 embedding model, loaded to embed chat questions.
+  resources:
+    requests: { cpu: 250m, memory: 1280Mi }
+    limits: { memory: 2560Mi }
+  # The enrollment rush is CPU-bound in the API; see deploy/k6/enrollment-rush.js.
+  autoscaling: { minReplicas: 3, maxReplicas: 12, targetCPUUtilizationPercentage: 65 }
+
+worker:
+  replicas: 2
+  concurrency: 2
+  resources:
+    requests: { cpu: 250m, memory: 1536Mi }
+    limits: { memory: 3Gi }
+
+beat:
+  resources:
+    requests: { cpu: 25m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+migrations:
+  enabled: true
+
+ingress:
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    # Longer than the longest assistant answer so SSE streams are not cut.
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=120
+
+networkPolicy:
+  enabled: true
+  vpcCidr: 10.20.0.0/16
+  clamavNamespace: security
+
+serviceMonitor:
+  enabled: false

@@ -1,0 +1,128 @@
+# Local development stack. Credentials below are development defaults only.
+name: kalinowo-university
+
+x-api-env: &api-env
+  UNI_ENVIRONMENT: development
+  UNI_DATABASE_URL: postgresql+psycopg://uni:uni@postgres:5432/uni
+  UNI_REDIS_URL: redis://redis:6379/0
+  # Tokens are issued for the browser-facing URL, so that is the expected issuer;
+  # keys are fetched over the compose network.
+  UNI_OIDC_ISSUER: http://localhost:8080/realms/kalinowo
+  UNI_OIDC_JWKS_URL: http://keycloak:8080/realms/kalinowo/protocol/openid-connect/certs
+  UNI_OIDC_AUDIENCE: uni-api
+  UNI_S3_BUCKET: uni-documents
+  UNI_S3_ENDPOINT_URL: http://minio:9000
+  UNI_S3_PUBLIC_ENDPOINT_URL: http://localhost:9000
+  UNI_EMAIL_BACKEND: smtp
+  UNI_SMTP_HOST: mailpit
+  UNI_SMTP_PORT: "1025"
+  UNI_CLAMAV_HOST: clamav
+  UNI_EMBEDDER: hashing
+  UNI_VECTOR_STORE: pgvector
+  UNI_ASSISTANT_MIN_SCORE: "0.2"
+  UNI_ANTHROPIC_MODEL: ${UNI_ANTHROPIC_MODEL:-claude-opus-5-5}
+  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  AWS_ACCESS_KEY_ID: minioadmin
+  AWS_SECRET_ACCESS_KEY: minioadmin
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: uni
+      POSTGRES_PASSWORD: uni
+      POSTGRES_DB: uni
+    ports: ["5432:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uni"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports: ["8080:8080"]
+    volumes: ["./deploy/keycloak:/opt/keycloak/data/import:ro"]
+
+  minio:
+    image: minio/minio:latest
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports: ["9000:9000", "9001:9001"]
+    volumes: ["minio-data:/data"]
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on: [minio]
+    entrypoint: >
+      sh -c "until mc alias set local http://minio:9000 minioadmin minioadmin; do sleep 1; done;
+      mc mb --ignore-existing local/uni-documents"
+
+  clamav:
+    image: clamav/clamav:stable
+    ports: ["3310:3310"]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["1025:1025", "8025:8025"]
+
+  migrate:
+    build: ./backend
+    command: ["alembic", "upgrade", "head"]
+    environment: *api-env
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    build: ./backend
+    environment:
+      <<: *api-env
+      UNI_CORS_ORIGINS: '["http://localhost:3000"]'
+    ports: ["8000:8000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  worker:
+    build: ./backend
+    command: ["celery", "-A", "app.worker", "worker", "--loglevel=info", "--concurrency=2"]
+    environment: *api-env
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      redis: { condition: service_healthy }
+
+  beat:
+    build: ./backend
+    command: ["celery", "-A", "app.worker", "beat", "--loglevel=info", "--schedule=/tmp/celerybeat-schedule"]
+    environment: *api-env
+    depends_on:
+      redis: { condition: service_healthy }
+
+  web:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+        NEXT_PUBLIC_KEYCLOAK_URL: http://localhost:8080
+    environment:
+      API_INTERNAL_URL: http://api:8000/api/v1
+    ports: ["3000:3000"]
+    depends_on: [api]
+
+volumes:
+  postgres-data:
+  minio-data:

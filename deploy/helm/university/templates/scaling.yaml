@@ -1,0 +1,48 @@
+{{- range $component := list "api" "web" }}
+{{- $settings := index $.Values $component }}
+{{- with $settings.autoscaling }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $.Release.Name }}-{{ $component }}
+  labels: {{- include "university.labels" $ | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ $.Release.Name }}-{{ $component }}
+  minReplicas: {{ .minReplicas }}
+  maxReplicas: {{ .maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .targetCPUUtilizationPercentage }}
+  behavior:
+    scaleDown:
+      # Registration traffic comes in bursts; do not shrink between them.
+      stabilizationWindowSeconds: 300
+---
+{{- end }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $.Release.Name }}-{{ $component }}
+  labels: {{- include "university.labels" $ | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: {{- include "university.selectorLabels" (dict "root" $ "component" $component) | nindent 6 }}
+---
+{{- end }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels: {{- include "university.labels" . | nindent 4 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels: {{- include "university.selectorLabels" (dict "root" . "component" "worker") | nindent 6 }}

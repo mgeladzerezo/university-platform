@@ -1,0 +1,152 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - name: Tests (SQLite and in-memory fakes)
+        run: pytest -q
+      - name: Assistant retrieval evaluation (fake embedder)
+        # One known miss out of 22 is tolerated by the test suite; this prints the report.
+        run: python -m app.assistant.evaluation.runner || true
+      - name: OpenAPI schema used by the frontend is up to date
+        run: |
+          python -m app.openapi > /tmp/openapi.json
+          diff /tmp/openapi.json ../frontend/openapi.json
+
+  backend-postgres:
+    # Same suite against PostgreSQL: runs the Alembic migrations (including
+    # pgvector and full-text search) and exercises real row locking in the
+    # enrollment concurrency tests.
+    runs-on: ubuntu-24.04
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: uni
+          POSTGRES_PASSWORD: uni
+          POSTGRES_DB: uni_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U uni" --health-interval 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://uni:uni@localhost:5432/uni_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+      - name: Models match the migrations
+        env:
+          UNI_DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
+        run: alembic check
+
+  frontend:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Generated API types are up to date
+        run: |
+          npm run gen:api
+          git diff --exit-code src/lib/api/schema.d.ts
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  infrastructure:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.8
+      - name: Terraform
+        working-directory: deploy/terraform
+        run: |
+          terraform fmt -check -recursive
+          terraform init -backend=false -input=false
+          terraform validate
+      - uses: azure/setup-helm@v4
+      - name: Helm
+        run: |
+          helm lint deploy/helm/university --set image.tag=ci
+          helm template uni deploy/helm/university --set image.tag=ci > /dev/null
+      - name: Trivy configuration scan (Terraform, Helm, Dockerfiles)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          # Report only for now: findings have to be triaged into .trivyignore
+          # (with reasons) before this can block merges. The image scan below blocks.
+          exit-code: "0"
+
+  images:
+    needs: [backend, frontend]
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        include:
+          - name: api
+            context: backend
+          - name: web
+            context: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          load: true
+          tags: kalinowo-uni/${{ matrix.name }}:${{ github.sha }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: kalinowo-uni/${{ matrix.name }}:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"

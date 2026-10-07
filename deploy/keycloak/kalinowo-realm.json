@@ -1,0 +1,199 @@
+{
+  "realm": "kalinowo",
+  "enabled": true,
+  "displayName": "Uniwersytet Kalinowski (development)",
+  "registrationAllowed": true,
+  "accessTokenLifespan": 300,
+  "roles": {
+    "realm": [
+      {
+        "name": "applicant"
+      },
+      {
+        "name": "student"
+      },
+      {
+        "name": "lecturer"
+      },
+      {
+        "name": "editor"
+      },
+      {
+        "name": "admissions_officer"
+      },
+      {
+        "name": "admin"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "uni-api",
+      "enabled": true,
+      "bearerOnly": true
+    },
+    {
+      "clientId": "uni-web",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "protocolMappers": [
+        {
+          "name": "uni-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "uni-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "username": "applicant",
+      "email": "applicant@ukal.example",
+      "firstName": "Maja",
+      "lastName": "Kandydatka",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "applicant"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "username": "student",
+      "email": "student@ukal.example",
+      "firstName": "Olek",
+      "lastName": "Studencki",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "student"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "username": "lecturer",
+      "email": "lecturer@ukal.example",
+      "firstName": "Lena",
+      "lastName": "Wykładowska",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "lecturer"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "username": "editor",
+      "email": "editor@ukal.example",
+      "firstName": "Ewa",
+      "lastName": "Redaktorska",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "editor"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000005",
+      "username": "reviewer",
+      "email": "reviewer@ukal.example",
+      "firstName": "Piotr",
+      "lastName": "Recenzent",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "editor"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000006",
+      "username": "officer",
+      "email": "officer@ukal.example",
+      "firstName": "Adam",
+      "lastName": "Rekrutacyjny",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "admissions_officer"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000007",
+      "username": "admin",
+      "email": "admin@ukal.example",
+      "firstName": "Ada",
+      "lastName": "Administracyjna",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "admin"
+      ]
+    }
+  ]
+}

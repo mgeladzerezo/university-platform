@@ -1,0 +1,43 @@
+{{- if .Values.migrations.enabled }}
+# Runs `alembic upgrade head` before the new pods roll out: as an Argo CD
+# PreSync hook, and as a pre-install/pre-upgrade hook under plain Helm.
+# Migrations must therefore stay compatible with the previous application version.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-migrate
+  labels: {{- include "university.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: 1
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels: {{- include "university.selectorLabels" (dict "root" . "component" "migrate") | nindent 8 }}
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext: {{- include "university.podSecurityContext" . | nindent 8 }}
+      containers:
+        - name: migrate
+          image: {{ include "university.image" (dict "root" . "name" "api") }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          # The hook runs before the release's ConfigMap exists, so the job reads
+          # only the database URL, from the Secret kept by External Secrets.
+          env:
+            - name: UNI_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: UNI_DATABASE_URL
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { memory: 512Mi }
+          securityContext: {{- include "university.containerSecurityContext" . | nindent 12 }}
+{{- end }}

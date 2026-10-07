@@ -1,0 +1,93 @@
+[
+  {
+    "kind": "page", "slug": "rekrutacja-terminy", "locale": "pl",
+    "title": "Terminy rekrutacji 2026/2027",
+    "summary": "Harmonogram rekrutacji na studia pierwszego i drugiego stopnia.",
+    "body_html": "<p>Rejestracja kandydatów na studia w systemie rekrutacyjnym trwa od 1 czerwca do 10 lipca 2026 roku.</p><p>Wyniki pierwszej tury rekrutacji zostaną ogłoszone 17 lipca 2026 roku. Kandydaci przyjęci potwierdzają podjęcie studiów do 24 lipca.</p><p>Druga tura rekrutacji, na kierunki z wolnymi miejscami, trwa od 1 do 15 września 2026 roku.</p>"
+  },
+  {
+    "kind": "page", "slug": "oplaty", "locale": "pl",
+    "title": "Opłaty za studia",
+    "summary": "Opłata rekrutacyjna i czesne.",
+    "body_html": "<p>Opłata rekrutacyjna wynosi 85 zł za każdy wybrany kierunek i nie podlega zwrotowi.</p><p>Studia stacjonarne prowadzone w języku polskim są bezpłatne. Czesne na studiach niestacjonarnych wynosi 2400 zł za semestr i może być płatne w czterech ratach.</p>"
+  },
+  {
+    "kind": "page", "slug": "wymagane-dokumenty", "locale": "pl",
+    "title": "Wymagane dokumenty",
+    "summary": "Lista dokumentów składanych przez kandydatów.",
+    "body_html": "<p>Przy rekrutacji na studia pierwszego stopnia wymagane są następujące dokumenty: skan dokumentu tożsamości, świadectwo dojrzałości oraz aktualne zdjęcie.</p><p>Kandydaci na studia drugiego stopnia dołączają dodatkowo dyplom ukończenia studiów pierwszego stopnia wraz z suplementem.</p><p>Dokumenty przesyła się w portalu kandydata w formacie PDF, JPG lub PNG, maksymalnie 10 MB na plik.</p>"
+  },
+  {
+    "kind": "page", "slug": "akademiki", "locale": "pl",
+    "title": "Domy studenckie",
+    "summary": "Zakwaterowanie w akademikach uczelni.",
+    "body_html": "<p>Uczelnia prowadzi trzy akademiki z 820 miejscami. Miejsce w akademiku kosztuje od 520 do 690 zł miesięcznie, zależnie od standardu pokoju.</p><p>Wniosek o przyznanie miejsca w domu studenckim składa się do 20 sierpnia. Pierwszeństwo mają studenci pierwszego roku spoza Kalinowa.</p>"
+  },
+  {
+    "kind": "page", "slug": "stypendia", "locale": "pl",
+    "title": "Stypendia",
+    "summary": "Stypendium rektora i stypendium socjalne.",
+    "body_html": "<p>Studenci mogą ubiegać się o stypendium rektora za wyniki w nauce oraz o stypendium socjalne.</p><p>Wnioski o stypendium rektora i stypendium socjalne składa się do 15 października w dziale spraw studenckich.</p>"
+  },
+  {
+    "kind": "page", "slug": "biblioteka", "locale": "pl",
+    "title": "Biblioteka uniwersytecka",
+    "summary": "Godziny otwarcia i zasady korzystania.",
+    "body_html": "<p>Biblioteka uniwersytecka jest otwarta od poniedziałku do piątku w godzinach 8:00-20:00 oraz w soboty w godzinach 9:00-15:00. W niedziele biblioteka jest nieczynna.</p><p>Książki wypożycza się na podstawie legitymacji studenckiej, na okres 30 dni.</p>"
+  },
+  {
+    "kind": "news", "slug": "dzien-otwarty-2026", "locale": "pl",
+    "title": "Dzień otwarty 2026",
+    "summary": "Zapraszamy kandydatów i ich rodziny na kampus.",
+    "body_html": "<p>Dzień otwarty Uniwersytetu Kalinowskiego odbędzie się 14 marca 2026 roku na kampusie przy ulicy Lipowej 12.</p><p>W programie: spotkania z wykładowcami, zwiedzanie laboratoriów oraz konsultacje rekrutacyjne.</p>"
+  },
+  {
+    "kind": "event", "slug": "inauguracja-roku", "locale": "pl",
+    "title": "Inauguracja roku akademickiego 2026/2027",
+    "summary": "Uroczyste rozpoczęcie roku akademickiego.",
+    "body_html": "<p>Inauguracja roku akademickiego odbędzie się 1 października 2026 roku o godzinie 10:00 w Auli Głównej.</p><p>Po uroczystości nowi studenci odbiorą legitymacje w dziekanatach.</p>",
+    "event_starts_at": "2026-10-01T08:00:00Z", "event_location": "Aula Główna"
+  },
+  {
+    "kind": "page", "slug": "erasmus", "locale": "pl",
+    "title": "Wymiana Erasmus+",
+    "summary": "Wyjazdy na studia za granicą.",
+    "body_html": "<p>Studenci po pierwszym roku mogą wyjechać na wymianę Erasmus+ do jednej z 46 uczelni partnerskich.</p><p>Nabór na wymianę w kolejnym roku akademickim trwa do 28 lutego. Zgłoszenia przyjmuje Biuro Współpracy Międzynarodowej.</p>"
+  },
+  {
+    "kind": "page", "slug": "admission-deadlines", "locale": "en",
+    "title": "Admission deadlines 2026/2027",
+    "summary": "Application schedule for bachelor's and master's programmes.",
+    "body_html": "<p>Online registration of applicants is open from 1 June to 10 July 2026. The application deadline is 10 July.</p><p>Results of the first round are announced on 17 July 2026. Admitted applicants confirm their place by 24 July.</p><p>A second round for programmes with free places runs from 1 to 15 September 2026.</p>"
+  },
+  {
+    "kind": "page", "slug": "tuition-fees", "locale": "en",
+    "title": "Tuition fees",
+    "summary": "Application fee and tuition.",
+    "body_html": "<p>The application fee is 85 PLN per programme and is not refundable.</p><p>Full-time studies taught in Polish are free of charge. The tuition fee for part-time studies is 2400 PLN per semester and can be paid in four instalments.</p>"
+  },
+  {
+    "kind": "page", "slug": "required-documents", "locale": "en",
+    "title": "Required documents",
+    "summary": "Documents every applicant has to upload.",
+    "body_html": "<p>To apply for a bachelor's programme you need to upload these documents: a scan of an identity document, a secondary school leaving certificate and a recent photo.</p><p>Applicants for master's programmes also upload a bachelor's diploma with its transcript of records.</p><p>Documents are uploaded in the applicant portal as PDF, JPG or PNG files of up to 10 MB each.</p>"
+  },
+  {
+    "kind": "page", "slug": "dormitories", "locale": "en",
+    "title": "Dormitories",
+    "summary": "Student housing on campus.",
+    "body_html": "<p>The university runs three dormitories with 820 places. A dormitory room costs between 520 and 690 PLN per month depending on the room standard.</p><p>Applications for a dormitory place are accepted until 20 August. First-year students from outside Kalinowo have priority.</p>"
+  },
+  {
+    "kind": "page", "slug": "library", "locale": "en",
+    "title": "University library",
+    "summary": "Opening hours and borrowing rules.",
+    "body_html": "<p>The university library opening hours are Monday to Friday 8:00-20:00 and Saturday 9:00-15:00. The library is closed on Sundays.</p><p>Books are borrowed with a student card for 30 days.</p>"
+  },
+  {
+    "kind": "news", "slug": "open-day-2026", "locale": "en",
+    "title": "Open day 2026",
+    "summary": "Prospective students and their families are welcome on campus.",
+    "body_html": "<p>The Kalinowo University open day takes place on 14 March 2026 on the campus at 12 Lipowa Street.</p><p>The programme includes meetings with lecturers, laboratory tours and admission consultations.</p>"
+  }
+]

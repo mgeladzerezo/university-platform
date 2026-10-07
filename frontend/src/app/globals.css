@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-brand;
+  }
+
+  h1 {
+    @apply text-3xl font-semibold tracking-tight text-slate-900;
+  }
+
+  h2 {
+    @apply text-xl font-semibold text-slate-900;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md border border-slate-400 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .input {
+    @apply block w-full rounded-md border border-slate-400 bg-white px-3 py-2 text-sm text-slate-900;
+  }
+
+  .label {
+    @apply mb-1 block text-sm font-medium text-slate-800;
+  }
+
+  .card {
+    @apply rounded-lg border border-slate-200 bg-white p-5;
+  }
+
+  /* Published HTML from the CMS and the TipTap editing surface. */
+  .rich-text {
+    @apply leading-7 text-slate-800;
+  }
+
+  .rich-text p,
+  .rich-text ul,
+  .rich-text ol,
+  .rich-text blockquote {
+    @apply mb-4;
+  }
+
+  .rich-text h2,
+  .rich-text h3 {
+    @apply mb-2 mt-6 font-semibold text-slate-900;
+  }
+
+  .rich-text ul {
+    @apply list-disc pl-6;
+  }
+
+  .rich-text ol {
+    @apply list-decimal pl-6;
+  }
+
+  .rich-text a {
+    @apply text-brand underline;
+  }
+
+  .rich-text blockquote {
+    @apply border-l-4 border-slate-300 pl-4 text-slate-700;
+  }
+}

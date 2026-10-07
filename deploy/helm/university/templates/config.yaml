@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  labels: {{- include "university.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.serviceAccount.name }}
+  labels: {{- include "university.labels" . | nindent 4 }}
+{{- if .Values.externalSecret.enabled }}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ .Release.Name }}-secrets
+  labels: {{- include "university.labels" . | nindent 4 }}
+spec:
+  refreshInterval: {{ .Values.externalSecret.refreshInterval }}
+  secretStoreRef:
+    kind: {{ .Values.externalSecret.secretStore.kind }}
+    name: {{ .Values.externalSecret.secretStore.name }}
+  target:
+    name: {{ .Release.Name }}-secrets
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        # The password is URL-encoded because RDS generates punctuation.
+        UNI_DATABASE_URL: "postgresql+psycopg://{{ `{{ .db_username }}` }}:{{ `{{ .db_password | urlquery }}` }}@{{ .Values.externalSecret.databaseHost }}:5432/{{ .Values.externalSecret.databaseName }}?sslmode=require"
+        UNI_REDIS_URL: {{ .Values.externalSecret.redisUrl | quote }}
+        ANTHROPIC_API_KEY: "{{ `{{ .anthropic_api_key }}` }}"
+  data:
+    - secretKey: db_username
+      remoteRef:
+        key: {{ .Values.externalSecret.databaseSecretName | quote }}
+        property: username
+    - secretKey: db_password
+      remoteRef:
+        key: {{ .Values.externalSecret.databaseSecretName | quote }}
+        property: password
+    - secretKey: anthropic_api_key
+      remoteRef:
+        key: {{ .Values.externalSecret.appSecretName }}
+        property: ANTHROPIC_API_KEY
+{{- end }}

@@ -1,0 +1,73 @@
+{{- if .Values.networkPolicy.enabled }}
+# Default deny for every pod of this release, then explicit allows per component.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-default-deny
+  labels: {{- include "university.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  policyTypes: [Ingress, Egress]
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-web
+  labels: {{- include "university.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "university.selectorLabels" (dict "root" . "component" "web") | nindent 6 }}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    # The ALB targets pod IPs directly (target-type: ip), from the VPC subnets.
+    - ports:
+        - { protocol: TCP, port: 3000 }
+  egress:
+    - to:
+        - podSelector:
+            matchLabels: {{- include "university.selectorLabels" (dict "root" . "component" "api") | nindent 14 }}
+      ports:
+        - { protocol: TCP, port: 8000 }
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-api
+  labels: {{- include "university.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels: {{- include "university.selectorLabels" (dict "root" . "component" "api") | nindent 6 }}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - ports:
+        - { protocol: TCP, port: 8000 }
+  egress:
+    {{- include "university.backendEgress" . | nindent 4 }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-jobs
+  labels: {{- include "university.labels" . | nindent 4 }}
+spec:
+  # Worker, beat and the migration job accept no inbound connections at all.
+  podSelector:
+    matchExpressions:
+      - { key: app.kubernetes.io/instance, operator: In, values: [{{ .Release.Name | quote }}] }
+      - { key: app.kubernetes.io/component, operator: In, values: [worker, beat, migrate] }
+  policyTypes: [Ingress, Egress]
+  egress:
+    {{- include "university.backendEgress" . | nindent 4 }}
+{{- end }}

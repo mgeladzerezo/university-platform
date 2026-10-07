@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kalinowo-university-api"
+version = "0.1.0"
+description = "API for the Kalinowo University platform (fictional case study)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "sqlalchemy>=2.0.30",
+    "alembic>=1.13",
+    "psycopg[binary]>=3.2",
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+    "email-validator>=2.2",
+    "pyjwt[crypto]>=2.9",
+    "celery>=5.4",
+    "redis>=5.0",
+    "boto3>=1.35",
+    "anthropic>=1.0",
+    "prometheus-client>=0.20",
+    "nh3>=0.2.18",
+]
+
+[project.optional-dependencies]
+# Production embedding model. Pulls in torch, so it is not part of the default
+# install and is never needed for tests.
+embeddings = ["sentence-transformers>=3.0"]
+dev = [
+    "pytest>=8.3",
+    "httpx>=0.27",
+    "fakeredis>=2.24",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.setuptools.package-data]
+"app.assistant.evaluation" = ["*.json", "*.jsonl"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "concurrency: enrollment race tests; CI also runs these against PostgreSQL",
+]
+filterwarnings = ["ignore::DeprecationWarning:celery.*", "ignore::DeprecationWarning:kombu.*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "S"]
+ignore = ["B008", "S101"]
+
+[tool.ruff.lint.isort]
+# The local alembic/ migrations folder would otherwise shadow the package.
+known-third-party = ["alembic"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]
+"app/seed.py" = ["S"]
